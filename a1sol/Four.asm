@@ -1,0 +1,122 @@
+.MODEL SMALL
+.STACK 100H
+.DATA
+    ARR    DB 45H,12H,78H,33H,90H,05H,67H
+    N      EQU 7
+    MAXV   DB 0
+    SMAXV  DB 0
+    MINV   DB 0FFH
+    SMINV  DB 0FFH
+    MSG1   DB 0DH,0AH,'Second Max: $'
+    MSG2   DB 0DH,0AH,'Second Min: $'
+    HEXTAB DB '0123456789ABCDEF'
+.CODE
+MAIN PROC
+    MOV AX,@DATA
+    MOV DS,AX
+
+    ; ---- find MAX ----
+    LEA SI,ARR
+    MOV CX,N
+    MOV AL,[SI]
+    MOV MAXV,AL
+FMAX:
+    INC SI
+    DEC CX
+    JZ ENDFMAX
+    MOV AL,[SI]
+    CMP AL,MAXV
+    JBE FMAX
+    MOV MAXV,AL
+    JMP FMAX
+ENDFMAX:
+
+    ; ---- find MIN ----
+    LEA SI,ARR
+    MOV CX,N
+    MOV AL,[SI]
+    MOV MINV,AL
+FMIN:
+    INC SI
+    DEC CX
+    JZ ENDFMIN
+    MOV AL,[SI]
+    CMP AL,MINV
+    JAE FMIN
+    MOV MINV,AL
+    JMP FMIN
+ENDFMIN:
+
+    ; ---- find SECOND MAX (largest value strictly less than MAX) ----
+    LEA SI,ARR
+    MOV CX,N
+    MOV SMAXV,0
+SMAXLOOP:
+    MOV AL,[SI]
+    CMP AL,MAXV
+    JAE SMAXNEXT
+    CMP AL,SMAXV
+    JBE SMAXNEXT
+    MOV SMAXV,AL
+SMAXNEXT:
+    INC SI
+    LOOP SMAXLOOP
+
+    ; ---- find SECOND MIN (smallest value strictly greater than MIN) ----
+    LEA SI,ARR
+    MOV CX,N
+    MOV SMINV,0FFH
+SMINLOOP:
+    MOV AL,[SI]
+    CMP AL,MINV
+    JBE SMINNEXT
+    CMP AL,SMINV
+    JAE SMINNEXT
+    MOV SMINV,AL
+SMINNEXT:
+    INC SI
+    LOOP SMINLOOP
+
+    ; ---- display results ----
+    MOV AH,09H
+    LEA DX,MSG1
+    INT 21H
+    MOV AL,SMAXV
+    CALL PRINT_HEX_BYTE
+
+    MOV AH,09H
+    LEA DX,MSG2
+    INT 21H
+    MOV AL,SMINV
+    CALL PRINT_HEX_BYTE
+
+    MOV AH,4CH
+    INT 21H
+MAIN ENDP
+
+PRINT_HEX_BYTE PROC
+    PUSH AX
+    PUSH BX
+    PUSH CX
+    MOV CH,AL
+    MOV CL,4
+    SHR AL,CL
+    AND AL,0FH
+    LEA BX,HEXTAB
+    XLAT
+    MOV DL,AL
+    MOV AH,02H
+    INT 21H
+    MOV AL,CH
+    AND AL,0FH
+    LEA BX,HEXTAB
+    XLAT
+    MOV DL,AL
+    MOV AH,02H
+    INT 21H
+    POP CX
+    POP BX
+    POP AX
+    RET
+PRINT_HEX_BYTE ENDP
+END MAIN

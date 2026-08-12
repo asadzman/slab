@@ -1,0 +1,26 @@
+.MODEL SMALL
+.STACK 100H
+.DATA
+    MSG DB 'Alphabet A-Z: $'
+.CODE
+MAIN PROC
+    MOV AX,@DATA
+    MOV DS,AX
+
+    MOV AH,09H
+    LEA DX,MSG
+    INT 21H
+
+    MOV CL,26
+    MOV DL,'A'
+PRLOOP:
+    MOV AH,02H
+    INT 21H
+    INC DL
+    DEC CL
+    JNZ PRLOOP
+
+    MOV AH,4CH
+    INT 21H
+MAIN ENDP
+END MAIN
