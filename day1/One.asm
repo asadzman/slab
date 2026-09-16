@@ -1,37 +1,23 @@
 .MODEL SMALL
-.STACK 100h
+.STACK 100H
 
 .DATA
-## dos printing stop upon registering $
-name db "Asaduz Zaman$"
-title db "One.msm$"
-    
+    msg DB 'Hello from MASM on macOS!', 13, 10, '$'
 
-; ax= ah + al
 .CODE
 MAIN PROC
-    mov ax, @data
-    mov ds, ax ; ds:= data segment
-    ; ds provied services
-; 01h  Read keyboard
-; 02h  Print one character
-; 09h  Print string
-; 4Ch  Exit program
-    mov ah, 09h
-    lea dx,name ; load effective address: name vars to dx, 
-    int 21h ; call Dos. : dos calls 'ah' which is set to 09h
+    ; Initialize DS
+    MOV AX, @DATA
+    MOV DS, AX
 
-    mov ah, 09h
-    lea dx,title ; load effective address: name vars to dx, 
-    int 21h
+    ; Print string
+    MOV AH, 09H
+    LEA DX, msg
+    INT 21H
 
+    ; Exit to DOS
+    MOV AH, 4CH
+    INT 21H
 
-    mov ah, 4Ch
-    int 21h
-    
-
-    mov ah, 4Ch
-    int 21h
 MAIN ENDP
-
 END MAIN
